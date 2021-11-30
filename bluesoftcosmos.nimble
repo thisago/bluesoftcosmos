@@ -1,9 +1,9 @@
 # Package
 
-version       = "0.1.0"
+version       = "1.0.0"
 author        = "Luciano Lorenzo"
 description   = "Bluesoft Cosmos extractor"
-license       = "GPL-3"
+license       = "gpl-3.0"
 srcDir        = "src"
 
 # Dependencies

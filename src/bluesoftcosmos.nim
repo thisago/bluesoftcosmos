@@ -4,52 +4,50 @@ from std/httpclient import newAsyncHttpClient, close, getContent, newHttpHeaders
 from std/strformat import fmt
 import std/asyncdispatch
 from std/xmltree import XmlNode, attr
-from std/strutils import find, contains, strip, parseFloat, multiReplace,
-                         parseInt, replace
+from std/strutils import find, contains, strip, parseFloat, parseInt, replace,
+                         AllChars, Digits
 
-import pkg/scraper
-from pkg/useragent import mozilla
+from pkg/scraper import findAll, text, attr, parseHtml
+# from pkg/useragent import mozilla
 
 type
   Product* = object
     barcode*: string
     name*: string
-    image*, brandImage*: string
+    image*: string
     mcn*: ProductMcn
-    country*, owner*, brand*, distributors*: string
+    country*, owner*, distributors*: string
     category*: string
+    brand*: Brand
     averagePrice*: AveragePrice # in R$
     prices*: seq[ProductPrice]
     related*: RelatedProducts
   ProductPrice* = object
     state*: string
-    minPrice*, mediumPrice*, maxPrice*, commonPrice*: float
+    minPrice*, mediumPrice*, maxPrice*, commonPrice*: string
     searches: int
   RelatedProducts* = object
     mcn*, category*: seq[RelatedProduct]
   RelatedProduct* = object
     name*, image*, mcn*, barcode*: string
   ProductMcn* = tuple
-    id, name: string
+    code, description: string
   AveragePrice* = tuple
-    min, max: float
+    min, max: string
+  Brand* = object
+    name*, image*: string
 
-const baseUrl = "https://cosmos.bluesoft.io"
-
-func getUrl(barcode: string): string =
+func getUrl(barcode: string; baseUrl: string): string =
   fmt"{baseUrl}/products/{barcode}"
 
 func parseMcn(mcn: string): ProductMcn =
   const search = " - "
   let i = mcn.find(search) - 1
-  result.id = mcn[0..i]
-  result.name = mcn[(i + search.len + 1)..^1]
+  result.code = mcn[0..i]
+  result.description = mcn[(i + search.len + 1)..^1]
 
-func parseBRL(s: string): float =
-  result = parseFloat s.multiReplace({
-    "R$": "",
-    ",": "."
-  }).strip
+func parseCurrency(s: string): float =
+  result = parseFloat s.strip(chars = AllChars - Digits).replace(",", ".")
 
 func extractPriceBox(el: XmlNode): ProductPrice =
   result.state = el.findAll("h4").text
@@ -57,21 +55,25 @@ func extractPriceBox(el: XmlNode): ProductPrice =
     ("dl", @{"class": "dl-horizontal"}),
     ("dd", @{"class": "description"}),
   ])
-  result.minPrice = parseBRL datas[0].text
-  result.mediumPrice = parseBRL datas[1].text
-  result.maxPrice = parseBRL datas[2].text
-  result.commonPrice = parseBRL datas[3].text
+  result.minPrice = datas[0].text
+  result.mediumPrice = datas[1].text
+  result.maxPrice = datas[2].text
+  result.commonPrice = datas[3].text
   result.searches = parseInt datas[4].text
 
 func getAveragePrices(prices: seq[ProductPrice]): AveragePrice =
   result.min = prices[0].minPrice
+  result.max = prices[0].maxPrice
   for price in prices:
-    if price.minPrice < result.min:
+    let
+      minPrice = parseCurrency price.minPrice
+      maxPrice = parseCurrency price.maxPrice
+    if minPrice < parseCurrency result.min:
       result.min = price.minPrice
-    if price.maxPrice > result.max:
+    if maxPrice > parseCurrency result.max:
       result.max = price.maxPrice
 
-func getRelatedProducts(el: XmlNode; mcn = ""): seq[RelatedProduct] =
+func getRelatedProducts(el: XmlNode; mcn = ""; baseUrl: string): seq[RelatedProduct] =
   for productEl in el.findAll("li", {"class": "product-list-item col-xs-12 col-lg-3 col-md-4"}):
     var product: RelatedProduct
     product.name = productEl.findAll("a", {"title": "Click to see more information about the Product"}).text
@@ -84,16 +86,16 @@ func getRelatedProducts(el: XmlNode; mcn = ""): seq[RelatedProduct] =
 
     result.add product
 
-proc getProduct*(barcode: string): Future[Product] {.async.} =
+proc getProduct*(barcode: string; tld = "io"): Future[Product] {.async.} =
   ## Fetches the product by bar code from Bluesoft Cosmos and extract it data
+  let baseUrl = "https://cosmos.bluesoft." & tld
   let client = newAsyncHttpClient(headers = newHttpHeaders({
-      "User-Agent": mozilla,
+      # "User-Agent": mozilla,
       "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-      "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101 Firefox/78.0",
-      "Accept-Language": "en-US,en;q=0.5",
+      "User-Agent": "mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101 Firefox/78.0",
     }))
   var html: XmlNode
-  try: html = parseHtml await client.getContent getUrl barcode
+  try: html = parseHtml await client.getContent getUrl(barcode, baseUrl)
   except: return
   close client
 
@@ -104,7 +106,7 @@ proc getProduct*(barcode: string): Future[Product] {.async.} =
       ("div", @{"id": "product-gallery"}),
       ("img", @{"class": ""}),
     ]).attr "src"
-    result.brandImage =
+    result.brand.image =
       html.findAll("img", @{"class": "thumbnail img-full product-brand-picture"}).attr "src"
     result.mcn = parseMcn(
       html.findAll("span", @{"class": "description ncm-name label-figura-fiscal"}).text)
@@ -117,7 +119,7 @@ proc getProduct*(barcode: string): Future[Product] {.async.} =
     result.owner = metas[1].text
     result.distributors = metas[2].text
     result.category = metas[3].text
-    result.brand = metas[4].text
+    result.brand.name = metas[4].text
   block prices:
     for el in html.findAll([
       ("div", @{"id": "price-boxes"}),
@@ -129,10 +131,11 @@ proc getProduct*(barcode: string): Future[Product] {.async.} =
     result.averagePrice = getAveragePrices result.prices
   block related:
     let relatedEls = html.findAll("div", {"class": "product-list"})
-    result.related.mcn = getRelatedProducts(relatedEls[0], result.mcn.id)
-    result.related.category = getRelatedProducts relatedEls[1]
+    result.related.mcn = getRelatedProducts(relatedEls[0], result.mcn.code, baseUrl)
+    result.related.category = getRelatedProducts(relatedEls[1], baseUrl = baseUrl)
 
 when isMainModule:
+  from std/strutils import multiReplace
   let product = waitFor getProduct "7891000277072"
   echo multiReplace($product, {
     "), (": "), \n  (",

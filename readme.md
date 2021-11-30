@@ -9,10 +9,11 @@ Bluesoft Cosmos is online catalog that allows search products by barcode
 - Barcode (the provided code)
 - Product name
 - Product image
-- Brand logo image
 - MCN (Mercosur Common Nomenclature)
 - Register country
 - Brand
+  - Name
+  - Image
 - Category
 - Medium price
 - Prices (seq of object)
@@ -33,6 +34,10 @@ Bluesoft Cosmos is online catalog that allows search products by barcode
 - Price history
   - Maximum (tuple of price and time)
   - Minimum (tuple of price and time)
+
+## TODO
+
+- [ ] Extract package width, height, weight
 
 ## License
 
