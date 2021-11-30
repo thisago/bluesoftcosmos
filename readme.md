@@ -4,6 +4,8 @@ Bluesoft Cosmos extractor
 
 Bluesoft Cosmos is online catalog that allows search products by barcode
 
+This website [sells an API access](https://cosmos.bluesoft.io/api-pricings) to get some of these data, but the API doens't provides all data of website frontend.
+
 ## Extracted data
 
 - Barcode (the provided code)
