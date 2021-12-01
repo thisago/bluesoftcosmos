@@ -1,6 +1,12 @@
 # Changelog
 
-## Version 1.0.0 (30/11/2021)
+## Version 1.1.0 (12/1/2021)
+
+- Barcode is now a `int64`
+
+---
+
+## Version 1.0.0 (11/30/2021)
 
 - Based in the [paid API spec](https://cosmos.bluesoft.io/api), the structure of data was changed
 - Fixed license typo

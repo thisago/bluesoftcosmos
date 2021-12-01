@@ -12,7 +12,7 @@ from pkg/scraper import findAll, text, attr, parseHtml
 
 type
   Product* = object
-    barcode*: string
+    barcode*: int64
     name*: string
     image*: string
     mcn*: ProductMcn
@@ -37,7 +37,7 @@ type
   Brand* = object
     name*, image*: string
 
-func getUrl(barcode: string; baseUrl: string): string =
+func getUrl(barcode: int64; baseUrl: string): string =
   fmt"{baseUrl}/products/{barcode}"
 
 func parseMcn(mcn: string): ProductMcn =
@@ -86,7 +86,7 @@ func getRelatedProducts(el: XmlNode; mcn = ""; baseUrl: string): seq[RelatedProd
 
     result.add product
 
-proc getProduct*(barcode: string; tld = "io"): Future[Product] {.async.} =
+proc getProduct*(barcode: int64; tld = "io"): Future[Product] {.async.} =
   ## Fetches the product by bar code from Bluesoft Cosmos and extract it data
   let baseUrl = "https://cosmos.bluesoft." & tld
   let client = newAsyncHttpClient(headers = newHttpHeaders({
@@ -101,7 +101,7 @@ proc getProduct*(barcode: string; tld = "io"): Future[Product] {.async.} =
 
   block basic:
     result.name = html.findAll("span", {"id": "product_description"}).text
-    result.barcode = html.findAll("span", {"id": "product_gtin"}).text
+    result.barcode = parseInt html.findAll("span", {"id": "product_gtin"}).text
     result.image = baseUrl & html.findAll([
       ("div", @{"id": "product-gallery"}),
       ("img", @{"class": ""}),
@@ -136,7 +136,7 @@ proc getProduct*(barcode: string; tld = "io"): Future[Product] {.async.} =
 
 when isMainModule:
   from std/strutils import multiReplace
-  let product = waitFor getProduct "7891000277072"
+  let product = waitFor getProduct 7891000277072
   echo multiReplace($product, {
     "), (": "), \n  (",
     ", (": ", \n  (",
