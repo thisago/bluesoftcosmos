@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 1.2.0 (12/1/2021)
+
+- Fixed metadata extraction
+- Fixed image extraction
+
+---
+
 ## Version 1.1.0 (12/1/2021)
 
 - Barcode is now a `int64`

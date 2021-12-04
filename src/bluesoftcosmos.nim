@@ -5,7 +5,7 @@ from std/strformat import fmt
 import std/asyncdispatch
 from std/xmltree import XmlNode, attr
 from std/strutils import find, contains, strip, parseFloat, parseInt, replace,
-                         AllChars, Digits
+                         AllChars, Digits, Letters, toLowerAscii
 
 from pkg/scraper import findAll, text, attr, parseHtml
 # from pkg/useragent import mozilla
@@ -92,7 +92,8 @@ proc getProduct*(barcode: int64; tld = "io"): Future[Product] {.async.} =
   let client = newAsyncHttpClient(headers = newHttpHeaders({
       # "User-Agent": mozilla,
       "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-      "User-Agent": "mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101 Firefox/78.0",
+      "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101 Firefox/78.0",
+      "Cookie": "_cosmos_session=aVlQNmxiUzhjaTRIY1pjdjhPZUtjb1p1MFl6YlFsRTg5Ritra3ZYM0RrSFQzbDMreDJuVTZTN0JIaXJEZU4zcVUvWk9aSDkrT2hva0V2cGMraDVhUUdaYkFBMHRJZERvSnR6bGVsMC9STGkybFRGMzcvT0VJd2swaWhpUUNBU3pSajloeWpaV1d5ZURIc1lxeUF5dEpkMWpaM0w4S0RtQjJUcHlhZTlzZ2xCbTl1TEVGZTl3R01rN1pHdy9ZNnYvSkRJNlJwaGtET1czSWJnWUsxZ1NxTG8ycFJFWGpmZk9iN0c2R2ovQXptRWg3OWRMdHh6M00wUTlhamZYVVplQzZLbURaNlpKT2RzM0pQU1diNTgxeUx5YVJwNnh6NzI4dkhSVnExTVJPL3c9LS1HNW45NWhxcTI4M2VBV1Q3cjdIYW9BPT0%3D--e914512ac0c0a67f0ce40c4f5cf5f9528f97731d"
     }))
   var html: XmlNode
   try: html = parseHtml await client.getContent getUrl(barcode, baseUrl)
@@ -102,24 +103,31 @@ proc getProduct*(barcode: int64; tld = "io"): Future[Product] {.async.} =
   block basic:
     result.name = html.findAll("span", {"id": "product_description"}).text
     result.barcode = parseInt html.findAll("span", {"id": "product_gtin"}).text
-    result.image = baseUrl & html.findAll([
+    result.image = html.findAll([
       ("div", @{"id": "product-gallery"}),
       ("img", @{"class": ""}),
     ]).attr "src"
+    if "https://" notin result.image:
+      result.image = baseUrl & result.image
     result.brand.image =
       html.findAll("img", @{"class": "thumbnail img-full product-brand-picture"}).attr "src"
     result.mcn = parseMcn(
       html.findAll("span", @{"class": "description ncm-name label-figura-fiscal"}).text)
-  block meta:
-    let metas = html.findAll([
-      ("dl", @{"class": "dl-horizontal"}),
-      ("dd", @{"class": "description"}),
-    ])
-    result.country = metas[0].text
-    result.owner = metas[1].text
-    result.distributors = metas[2].text
-    result.category = metas[3].text
-    result.brand.name = metas[4].text
+  block metadata:
+    let
+      meta = html.findAll("dl", {"class": "dl-horizontal"})[0]
+      keys = meta.findAll("dt")
+      values = meta.findAll("dd", {"class": "description"})
+    for i, k in keys:
+      let
+        key = k.text.strip(chars = AllChars - Letters).toLowerAscii
+        value = values[i].text
+      case key:
+      of "country": result.country = value
+      of "owner": result.owner = value
+      of "distributors": result.distributors = value
+      of "brand": result.brand.name = value
+
   block prices:
     for el in html.findAll([
       ("div", @{"id": "price-boxes"}),
@@ -136,7 +144,7 @@ proc getProduct*(barcode: int64; tld = "io"): Future[Product] {.async.} =
 
 when isMainModule:
   from std/strutils import multiReplace
-  let product = waitFor getProduct 7891000277072
+  let product = waitFor getProduct 7896200031158
   echo multiReplace($product, {
     "), (": "), \n  (",
     ", (": ", \n  (",
