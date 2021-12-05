@@ -36,10 +36,22 @@ This website [sells an API access](https://cosmos.bluesoft.io/api-pricings) to g
 - Price history
   - Maximum (tuple of price and time)
   - Minimum (tuple of price and time)
+- seq of ProductUnits
+  - Barcode
+  - Kind
+  - PackageQnt
+  - BallastQnt
+  - LayerQnt
+  - Length
+  - Height
+  - Width
+  - GrossWeight
+  - NetWeight
 
 ## TODO
 
-- [ ] Extract package width, height, weight
+- [x] Extract package width, height, weight
+- [ ] Extract MCN comments
 
 ## License
 

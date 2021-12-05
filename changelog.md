@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 1.3.0 (12/1/2021)
+
+- Added width, height, weight
+
+---
+
 ## Version 1.2.0 (12/1/2021)
 
 - Fixed metadata extraction
