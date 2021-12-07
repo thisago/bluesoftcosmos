@@ -19,7 +19,8 @@ type
     country*, owner*, distributors*: string
     category*: string
     brand*: Brand
-    averagePrice*: AveragePrice # in R$
+    mediumPrice*: string
+    averagePrice*: AveragePrice
     prices*: seq[ProductPrice]
     related*: RelatedProducts
     commercialUnits*: seq[ProductUnits]
@@ -70,16 +71,17 @@ func extractPriceBox(el: XmlNode): ProductPrice =
   result.searches = parseInt datas[4].text
 
 func getAveragePrices(prices: seq[ProductPrice]): AveragePrice =
-  result.min = prices[0].minPrice
-  result.max = prices[0].maxPrice
-  for price in prices:
-    let
-      minPrice = parseCurrency price.minPrice
-      maxPrice = parseCurrency price.maxPrice
-    if minPrice < parseCurrency result.min:
-      result.min = price.minPrice
-    if maxPrice > parseCurrency result.max:
-      result.max = price.maxPrice
+  if prices.len > 0:
+    result.min = prices[0].minPrice
+    result.max = prices[0].maxPrice
+    for price in prices:
+      let
+        minPrice = parseCurrency price.minPrice
+        maxPrice = parseCurrency price.maxPrice
+      if minPrice < parseCurrency result.min:
+        result.min = price.minPrice
+      if maxPrice > parseCurrency result.max:
+        result.max = price.maxPrice
 
 func getRelatedProducts(el: XmlNode; mcn = ""; baseUrl: string): seq[RelatedProduct] =
   for productEl in el.findAll("li", {"class": "product-list-item col-xs-12 col-lg-3 col-md-4"}):
@@ -136,6 +138,7 @@ proc getProduct*(barcode: int64; tld = "io"): Future[Product] {.async.} =
       of "owner": result.owner = value
       of "distributors": result.distributors = value
       of "brand": result.brand.name = value
+      of "average price": result.mediumPrice = value
 
   block prices:
     for el in html.findAll([
@@ -174,7 +177,7 @@ proc getProduct*(barcode: int64; tld = "io"): Future[Product] {.async.} =
 
 when isMainModule:
   from std/strutils import multiReplace
-  let product = waitFor getProduct 7896200031158
+  let product = waitFor getProduct 7897888860269
   echo multiReplace($product, {
     "), (": "), \n  (",
     ", (": ", \n  (",

@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 1.4.0 (12/7/2021)
+
+- Average price metadata
+- Added a verification to not fall in products (like [7897888860269](https://cosmos.bluesoft.io/products/7897888860269)) that doesn't have the prices searches
+
+---
+
 ## Version 1.3.0 (12/1/2021)
 
 - Added width, height, weight

@@ -18,6 +18,9 @@ This website [sells an API access](https://cosmos.bluesoft.io/api-pricings) to g
   - Image
 - Category
 - Medium price
+- Average price
+  - Min
+  - Max
 - Prices (seq of object)
   - State
   - Smaller price
