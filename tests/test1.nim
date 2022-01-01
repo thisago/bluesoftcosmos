@@ -4,7 +4,7 @@ from std/strutils import contains
 
 from bluesoftcosmos import getProduct
 
-let product = waitFor getProduct("7891000277072", "com.br")
+let product = waitFor getProduct(7891000277072, "com.br")
 echo product
 
 suite "bluesoftcosmos":

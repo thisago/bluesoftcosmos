@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 1.4.1 (12/7/2021)
+
+- Now the `getProduct` throw an error if connection with Bluesoft Cosmos server not succeeds
+
+---
+
 ## Version 1.4.0 (12/7/2021)
 
 - Average price metadata
