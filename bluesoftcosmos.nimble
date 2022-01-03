@@ -1,6 +1,6 @@
 # Package
 
-version       = "1.4.1"
+version       = "1.4.2"
 author        = "Luciano Lorenzo"
 description   = "Bluesoft Cosmos extractor"
 license       = "gpl-3.0"

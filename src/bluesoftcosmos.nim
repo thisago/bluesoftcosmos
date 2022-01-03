@@ -37,8 +37,11 @@ type
   Brand* = object
     name*, image*: string
 
-func getUrl(barcode: int64; baseUrl: string): string =
-  fmt"{baseUrl}/products/{barcode}"
+func getUrl(barcode: int64; baseUrl, tld: string): string =
+  var products = "products"
+  if tld == "com.br":
+    products = "produtos"
+  fmt"{baseUrl}/{products}/{barcode}"
 
 func parseMcn(mcn: string): ProductMcn =
   const search = " - "
@@ -95,7 +98,7 @@ proc getProduct*(barcode: int64; tld = "io"): Future[Product] {.async.} =
       "User-Agent": "mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101 Firefox/78.0",
     }))
   var html: XmlNode
-  let resp = await client.get getUrl(barcode, baseUrl)
+  let resp = await client.get getUrl(barcode, baseUrl, tld)
   try: html = parseHtml await resp.body
   except: return
   close client
