@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 1.4.3 (02/23/2022)
+
+- Changed the `products` route to `product`
+
+---
+
 ## Version 1.4.2 (12/7/2021)
 
 - Fixed url generation

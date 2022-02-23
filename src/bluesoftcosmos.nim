@@ -38,10 +38,10 @@ type
     name*, image*: string
 
 func getUrl(barcode: int64; baseUrl, tld: string): string =
-  var products = "products"
+  var product = "product"
   if tld == "com.br":
-    products = "produtos"
-  fmt"{baseUrl}/{products}/{barcode}"
+    product = "produto"
+  fmt"{baseUrl}/{product}/{barcode}"
 
 func parseMcn(mcn: string): ProductMcn =
   const search = " - "
