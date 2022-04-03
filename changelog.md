@@ -1,5 +1,19 @@
 # Changelog
 
+## Version 1.5.0 (2022/04/03)
+
+- Fixed the meta extraction
+- Fixed the related products name extraction
+- Added meta averagePrice
+- Changed default tld to "com.br"
+- Fixed medium price crash when no prices provided
+- Fixed another crash in related products extraction
+- Fixed crash in meta extraction when no meta container is sent
+- If value is "Unknown" then set to a blank string
+- If there's no image, then set to a blank string, not to the Bluesoft site
+
+---
+
 ## Version 1.4.3 (02/23/2022)
 
 - Changed the `products` route to `product`

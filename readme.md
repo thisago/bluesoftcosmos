@@ -17,8 +17,8 @@ This website [sells an API access](https://cosmos.bluesoft.io/api-pricings) to g
   - Name
   - Image
 - Category
-- Medium price
 - Average price
+- Medium price
   - Min
   - Max
 - Prices (seq of object)
@@ -55,6 +55,7 @@ This website [sells an API access](https://cosmos.bluesoft.io/api-pricings) to g
 
 - [x] Extract package width, height, weight
 - [ ] Extract MCN comments
+- [ ] Fix related products extraction. It needs to be name based not index based
 
 ## License
 
