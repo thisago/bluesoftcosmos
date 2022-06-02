@@ -1,9 +1,9 @@
 # Package
 
 version       = "1.5.0"
-author        = "Luciano Lorenzo"
+author        = "Thiago Navaro"
 description   = "Bluesoft Cosmos extractor"
-license       = "gpl-3.0"
+license       = "gpl-3.0-only"
 srcDir        = "src"
 
 # Dependencies
