@@ -1,7 +1,7 @@
 # Package
 
 version       = "1.5.0"
-author        = "Thiago Navaro"
+author        = "Thiago Navarro"
 description   = "Bluesoft Cosmos extractor"
 license       = "gpl-3.0-only"
 srcDir        = "src"
